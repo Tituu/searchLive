@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Stream Movie</title>
+</head>
+<body style="margin:0; font-family:sans-serif; background:linear-gradient(135deg,#4e54c8,#8f94fb); color:white; text-align:center;">
+
+  <div id="container" style="padding:2rem;">
+    <h2 id="title">Loading...</h2>
+    <div id="inputArea" style="margin-top:1rem;"></div>
+    <iframe id="player" style="width:90%; height:60vh; margin-top:2rem; border:none; border-radius:10px;" allowfullscreen></iframe>
+  </div>
+
+  <footer style="position:fixed; bottom:0; width:100%; text-align:center; padding:1rem; background:#2c2f4a;">
+    Made with <i class="fas fa-heart" style="color:red;"></i> by You
+  </footer>
+
+  <script>
+    const urlParams = new URLSearchParams(location.search);
+    const id = urlParams.get("id");
+    const type = urlParams.get("type");
+
+    const titleEl = document.getElementById("title");
+    const inputArea = document.getElementById("inputArea");
+    const player = document.getElementById("player");
+
+    if (!id || !type) {
+      titleEl.innerText = "Invalid request.";
+    } else {
+      fetch(`https://api.themoviedb.org/3/${type === "movie" ? "movie" : "tv"}/${id}?api_key=55b11132b5aef36e8376418dcce756f2`)
+        .then(res => res.json())
+        .then(data => {
+          titleEl.innerText = data.title || data.name;
+
+          if (type === "movie") {
+            player.src = `https://vidsrc.net/embed/movie/${id}`;
+          } else {
+            inputArea.innerHTML = `
+              <input id="season" placeholder="Season" style="padding:0.5rem; width:100px;">
+              <input id="episode" placeholder="Episode" style="padding:0.5rem; width:100px; margin-left:1rem;">
+              <button onclick="loadSeries()" style="padding:0.5rem 1rem; margin-left:1rem; background:#9b59b6; border:none; color:white; border-radius:5px;">Watch</button>
+            `;
+          }
+        });
+    }
+
+    function loadSeries() {
+      const s = document.getElementById("season").value;
+      const e = document.getElementById("episode").value;
+      if (s && e) {
+        player.src = `https://vidsrc.net/embed/tv/${id}/${s}/${e}`;
+      }
+    }
+  </script>
+</body>
+</html>
