@@ -1,46 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Movie Finder</title>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Movie Search</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #3a0ca3, #4361ee);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    input {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    .results div {
+      background: rgba(0,0,0,0.5);
+      padding: 1rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .results div:hover {
+      background: rgba(0,0,0,0.7);
+    }
+    .badge {
+      background: #6c63ff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-right: 5px;
+      font-size: 0.8rem;
+    }
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 1rem;
+      background: #2c2f4a;
+    }
+  </style>
 </head>
-<body style="margin:0; font-family:sans-serif; background:linear-gradient(135deg,#4e54c8,#8f94fb); color:white;">
-
-  <div style="text-align:center; padding:2rem;">
-    <h1 style="font-size:2.5rem;">Search Your Movie</h1>
-    <input id="search" type="text" placeholder="Enter movie name" style="padding:0.5rem 1rem; font-size:1.2rem; border:none; border-radius:5px; width:80%; max-width:500px;">
-    <div id="results" style="margin-top:2rem;"></div>
+<body>
+  <div class="container">
+    <h2><i class="fas fa-search"></i> Search Movie or Series</h2>
+    <input type="text" id="searchInput" placeholder="Enter movie or series name..." />
+    <div class="results" id="results"></div>
   </div>
-
-  <footer style="position:fixed; bottom:0; width:100%; text-align:center; padding:1rem; background:#2c2f4a; font-size:0.9rem;">
+  <footer>
     Made with <i class="fas fa-heart" style="color:red;"></i> by You
   </footer>
 
   <script>
-    const searchInput = document.getElementById("search");
-    const resultsDiv = document.getElementById("results");
+    const input = document.getElementById('searchInput');
+    const resultsDiv = document.getElementById('results');
+    const apiKey = "55b11132b5aef36e8376418dcce756f2";
 
-    searchInput.addEventListener("input", async () => {
-      const query = searchInput.value;
-      if (query.length < 3) return resultsDiv.innerHTML = "";
+    input.addEventListener('input', async () => {
+      const query = input.value.trim();
+      if (!query) return (resultsDiv.innerHTML = '');
 
-      const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=55b11132b5aef36e8376418dcce756f2&query=${encodeURIComponent(query)}`);
+      const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${query}`);
       const data = await res.json();
+      resultsDiv.innerHTML = '';
 
-      resultsDiv.innerHTML = data.results.map(item => {
-        const title = item.title || item.name;
-        const id = item.id;
+      data.results.forEach(item => {
+        const name = item.title || item.name;
         const type = item.media_type;
-        const year = (item.release_date || item.first_air_date || "").split("-")[0];
-        const genre = type === "movie" ? "Movie" : "Series";
-        return `<div onclick="location.href='player.html?id=${id}&type=${genre.toLowerCase()}'" 
-          style="background:#ffffff11; margin:1rem auto; padding:1rem; border-radius:10px; cursor:pointer; max-width:600px;">
-          <h3 style="margin:0;">${title}</h3>
-          <span style="background:#7f8cfa; padding:0.2rem 0.5rem; border-radius:5px; font-size:0.9rem;">${year || 'N/A'}</span>
-          <span style="background:#9b59b6; padding:0.2rem 0.5rem; border-radius:5px; font-size:0.9rem; margin-left:0.5rem;">${genre}</span>
-        </div>`;
-      }).join("");
+        const id = item.id;
+        const year = (item.release_date || item.first_air_date || '').split('-')[0];
+        const genre = type === "tv" ? "Series" : "Movie";
+
+        const div = document.createElement('div');
+        div.innerHTML = `<strong>${name}</strong><br>
+        <span class="badge"><i class="fas fa-calendar"></i> ${year || 'N/A'}</span>
+        <span class="badge"><i class="fas fa-film"></i> ${genre}</span>`;
+        
+        div.onclick = () => {
+          const url = new URL(window.location.origin + "/player.html");
+          url.searchParams.set("id", id);
+          url.searchParams.set("type", type);
+          window.location.href = url;
+        };
+
+        resultsDiv.appendChild(div);
+      });
     });
   </script>
 </body>
