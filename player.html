@@ -1,56 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Stream Movie</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Player</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #3a0ca3, #4361ee);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      text-align: center;
+    }
+    .container {
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    iframe {
+      width: 100%;
+      height: 450px;
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.6);
+    }
+    .input-group {
+      margin: 1rem 0;
+    }
+    input {
+      padding: 0.5rem;
+      border: none;
+      border-radius: 6px;
+      margin: 0 0.5rem;
+    }
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 1rem;
+      background: #2c2f4a;
+    }
+  </style>
 </head>
-<body style="margin:0; font-family:sans-serif; background:linear-gradient(135deg,#4e54c8,#8f94fb); color:white; text-align:center;">
-
-  <div id="container" style="padding:2rem;">
-    <h2 id="title">Loading...</h2>
-    <div id="inputArea" style="margin-top:1rem;"></div>
-    <iframe id="player" style="width:90%; height:60vh; margin-top:2rem; border:none; border-radius:10px;" allowfullscreen></iframe>
+<body>
+  <div class="container" id="main">
+    <h2><i class="fas fa-play-circle"></i> Streaming</h2>
+    <div id="extraInputs"></div>
+    <div id="playerContainer"></div>
   </div>
-
-  <footer style="position:fixed; bottom:0; width:100%; text-align:center; padding:1rem; background:#2c2f4a;">
+  <footer>
     Made with <i class="fas fa-heart" style="color:red;"></i> by You
   </footer>
 
   <script>
-    const urlParams = new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
     const type = urlParams.get("type");
+    const extraInputs = document.getElementById("extraInputs");
+    const playerContainer = document.getElementById("playerContainer");
 
-    const titleEl = document.getElementById("title");
-    const inputArea = document.getElementById("inputArea");
-    const player = document.getElementById("player");
+    function embedPlayer(finalUrl) {
+      playerContainer.innerHTML = `
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden;">
+          <iframe src="${finalUrl}" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
+        </div>
+      `;
+    }
 
-    if (!id || !type) {
-      titleEl.innerText = "Invalid request.";
+    if (type === "tv") {
+      extraInputs.innerHTML = `
+        <div class="input-group">
+          <label><i class="fas fa-list-ol"></i> Season: <input id="season" type="number" min="1" /></label>
+          <label><i class="fas fa-list-ol"></i> Episode: <input id="episode" type="number" min="1" /></label>
+          <button onclick="loadSeries()" style="padding: 0.5rem 1rem; border:none; border-radius:5px; background:#fff; color:#333;">Play</button>
+        </div>
+      `;
     } else {
-      fetch(`https://api.themoviedb.org/3/${type === "movie" ? "movie" : "tv"}/${id}?api_key=55b11132b5aef36e8376418dcce756f2`)
-        .then(res => res.json())
-        .then(data => {
-          titleEl.innerText = data.title || data.name;
-
-          if (type === "movie") {
-            player.src = `https://vidsrc.net/embed/movie/${id}`;
-          } else {
-            inputArea.innerHTML = `
-              <input id="season" placeholder="Season" style="padding:0.5rem; width:100px;">
-              <input id="episode" placeholder="Episode" style="padding:0.5rem; width:100px; margin-left:1rem;">
-              <button onclick="loadSeries()" style="padding:0.5rem 1rem; margin-left:1rem; background:#9b59b6; border:none; color:white; border-radius:5px;">Watch</button>
-            `;
-          }
-        });
+      const url = `https://vidsrc.net/embed/movie/${id}`;
+      embedPlayer(url);
     }
 
     function loadSeries() {
       const s = document.getElementById("season").value;
       const e = document.getElementById("episode").value;
-      if (s && e) {
-        player.src = `https://vidsrc.net/embed/tv/${id}/${s}/${e}`;
-      }
+      if (!s || !e) return alert("Please enter season and episode.");
+      const url = `https://vidsrc.net/embed/tv/${id}/${s}/${e}`;
+      embedPlayer(url);
     }
   </script>
 </body>
