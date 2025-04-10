@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movie Finder</title>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body style="margin:0; font-family:sans-serif; background:linear-gradient(135deg,#4e54c8,#8f94fb); color:white;">
+
+  <div style="text-align:center; padding:2rem;">
+    <h1 style="font-size:2.5rem;">Search Your Movie</h1>
+    <input id="search" type="text" placeholder="Enter movie name" style="padding:0.5rem 1rem; font-size:1.2rem; border:none; border-radius:5px; width:80%; max-width:500px;">
+    <div id="results" style="margin-top:2rem;"></div>
+  </div>
+
+  <footer style="position:fixed; bottom:0; width:100%; text-align:center; padding:1rem; background:#2c2f4a; font-size:0.9rem;">
+    Made with <i class="fas fa-heart" style="color:red;"></i> by You
+  </footer>
+
+  <script>
+    const searchInput = document.getElementById("search");
+    const resultsDiv = document.getElementById("results");
+
+    searchInput.addEventListener("input", async () => {
+      const query = searchInput.value;
+      if (query.length < 3) return resultsDiv.innerHTML = "";
+
+      const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=<<TMDB_API_KEY>>&query=${encodeURIComponent(query)}`);
+      const data = await res.json();
+
+      resultsDiv.innerHTML = data.results.map(item => {
+        const title = item.title || item.name;
+        const id = item.id;
+        const type = item.media_type;
+        const year = (item.release_date || item.first_air_date || "").split("-")[0];
+        const genre = type === "movie" ? "Movie" : "Series";
+        return `<div onclick="location.href='player.html?id=${id}&type=${genre.toLowerCase()}'" 
+          style="background:#ffffff11; margin:1rem auto; padding:1rem; border-radius:10px; cursor:pointer; max-width:600px;">
+          <h3 style="margin:0;">${title}</h3>
+          <span style="background:#7f8cfa; padding:0.2rem 0.5rem; border-radius:5px; font-size:0.9rem;">${year || 'N/A'}</span>
+          <span style="background:#9b59b6; padding:0.2rem 0.5rem; border-radius:5px; font-size:0.9rem; margin-left:0.5rem;">${genre}</span>
+        </div>`;
+      }).join("");
+    });
+  </script>
+</body>
+</html>
